@@ -1,0 +1,11 @@
+kazenai-ai/kazenai-core
+kazenai-ai/kazenai-finops-sdk
+kazenai-ai/kazen-event-schema
+kazenai-ai/kazenai-agent-builder
+kazenai-ai/kazenai-agent-brain
+kazenai-ai/kazenai-agent-finops
+kazenai-ai/kazenai-agent-lens
+kazenai-ai/kazenai-gateway
+kazenai-ai/kazenai-agent-growthops
+kazenai-ai/kazenai-platform
+kazenai-ai/kazenai-contracts

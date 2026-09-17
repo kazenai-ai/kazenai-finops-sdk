@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "label": "LLM calls guarded",
+  "message": "100% | enforced: fail-closed",
+  "color": "brightgreen"
+}

@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kazenai-finops"
+version = "1.0.1"
+description = "KazenAI FinOps SDK - LangChain/LangGraph cost control adapters"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Dhavan Shah", email = "founder@kazenai.com" }]
+keywords = ["llm", "agent", "finops", "observability", "openai", "anthropic", "langchain"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+
+# Customer-facing entry point. Re-exports from kazenai-core so existing
+# user code (`from kazenai_finops import monitor`) routes to the engine.
+# The dependency is pinned to a minor range so transitive upgrades land
+# in `pip install --upgrade` automatically while protecting against
+# breaking changes (next major bump = next coordinated release).
+dependencies = [
+    "kazenai>=1.0.1,<2.0",
+    "kazen-event-schema>=0.6.0,<0.7",
+    "pydantic>=2.0,<3",
+    "httpx>=0.25,<1",
+]
+
+[project.optional-dependencies]
+langchain = ["langchain-core>=0.2,<1"]
+langgraph = ["langgraph>=0.2,<1"]
+crewai = ["crewai>=0.55,<1"]
+# AutoGen ships as a `pyautogen` package; pin to the 0.4 line that
+# stabilised the agent API.
+autogen = ["pyautogen>=0.4,<1"]
+# Convenience: install with all adapters for evaluation.
+all = [
+    "langchain-core>=0.2,<1",
+    "langgraph>=0.2,<1",
+    "crewai>=0.55,<1",
+    "pyautogen>=0.4,<1",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "fastapi>=0.115",
+    "starlette>=0.40",
+    "flask>=3.0",
+    "django>=5.0",
+    "httpx>=0.28",
+]
+
+[project.urls]
+Homepage = "https://kazenai.com"
+Repository = "https://github.com/KazenAI/kazenai-finops"
+Documentation = "https://docs.kazenai.com"
+Changelog = "https://github.com/KazenAI/kazenai-finops/releases"
+"Bug Tracker" = "https://github.com/KazenAI/kazenai-finops/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kazenai_finops*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
