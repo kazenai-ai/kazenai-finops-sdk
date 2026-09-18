@@ -1,48 +1,19 @@
-name: LLM Guard Badge
+# Disabled for public-candidate safety (LEGAL LF-11 / F10).
+# Cross-repo clone + contents:write + scheduled auto-commit is not suitable
+# as a default public SDK workflow. Re-enable only with explicit founder approval
+# scoped to approved public inputs and least privilege.
+name: LLM Guard Badge (disabled)
 
 on:
-  push:
-    branches: [main, master]
-    paths:
-      - "scripts/audit_llm_calls_all.py"
-      - "scripts/repos.txt"
-      - ".github/workflows/llm_guard_badge.yml"
-  schedule:
-    - cron: "0 8 * * 1"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  audit:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Checkout audited repos
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p workspace
-          while read -r repo; do
-            [[ -z "$repo" || "$repo" =~ ^# ]] && continue
-            name="${repo##*/}"
-            git clone --depth 1 "https://github.com/${repo}.git" "workspace/${name}"
-          done < scripts/repos.txt
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Run LLM call audit
-        env:
-          KAZENAI_AUDIT_ROOT: ${{ github.workspace }}/workspace
-          KAZENAI_BADGE_PATH: ${{ github.workspace }}/badge/llm-guard.json
-        run: python3 scripts/audit_llm_calls_all.py
-
-      - name: Commit badge update
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update LLM guard badge"
-          file_pattern: badge/llm-guard.json
+      - run: |
+          echo "This workflow is disabled pending LF-11 public-candidate hardening."
+          exit 0

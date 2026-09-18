@@ -200,8 +200,9 @@ Local enforcement means:
 
 ## License
 
-Apache 2.0 — use it for anything, attribution appreciated.
+Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE.
 
 Issues, PRs, and feedback: https://github.com/KazenAI/kazenai-finops/issues
 
 Early access + onboarding: https://kazenai.com
+
