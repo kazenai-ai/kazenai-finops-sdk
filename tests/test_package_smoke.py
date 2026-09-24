@@ -17,7 +17,7 @@ import pytest
 
 def test_top_level_imports_without_extras():
     import kazenai_finops as kf
-    assert kf.__version__ == "1.0.1"
+    assert kf.__version__ == "1.0.2"
     from kazenai.enforcement import BudgetExceeded as CoreBudgetExceeded
     assert kf.BudgetExceeded is CoreBudgetExceeded
     assert callable(kf.monitor)

@@ -1,18 +1,18 @@
 # Vendored wheels (CI)
 
-`kazenai` and `kazen-event-schema` are not published at the workspace versions
-yet. CI installs these pinned wheels before `pip install -e ".[dev]"`.
+Pinned wheels for hermetic CI. **`kazenai` and `kazen-event-schema` are on PyPI**;
+keep vendor copies when CI must not reach the network or must pin exact files.
 Install `kazen_event_schema` first — the `kazenai` wheel depends on it.
 
 | Wheel | Purpose |
 |-------|---------|
-| `kazen_event_schema-0.6.0-py3-none-any.whl` | Satisfies `kazen-event-schema>=0.6.0,<0.7` |
-| `kazenai-1.0.1-py3-none-any.whl` | Satisfies `kazenai>=1.0.1,<2.0` |
+| `kazen_event_schema-0.6.0-py3-none-any.whl` | Prefer `pip install kazen-event-schema` for latest |
+| `kazenai-1.0.1-py3-none-any.whl` | Prefer `pip install kazenai` for latest |
 
 Refresh:
 ```bash
 cd ../kazenai-core && python -m build
-cp dist/kazenai-1.0.1-py3-none-any.whl ../kazenai-finops-sdk/vendor/
+cp dist/kazenai-*-py3-none-any.whl ../kazenai-finops-sdk/vendor/
 cd ../kazen-event-schema && python -m build
-cp dist/kazen_event_schema-0.6.0-py3-none-any.whl ../kazenai-finops-sdk/vendor/
+cp dist/kazen_event_schema-*-py3-none-any.whl ../kazenai-finops-sdk/vendor/
 ```

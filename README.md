@@ -1,30 +1,29 @@
 # kazenai-finops
 
-> **Control FINAL_1 scope:** Only sync OpenAI Chat Completions + Anthropic Messages via `kazenai.monitor` are Control-certified (see `docs/integrations/control-supported-matrix.md`). Claims below about wrapping *any* client, streaming mid-flight, durable checkpoint/resume, or framework “Phase 1 ✓” are **not Control-supported** unless a matrix cell is raised with evidence.
+> **Control FINAL_1 scope:** Only sync OpenAI Chat Completions + Anthropic Messages via `kazenai.monitor` / `kazenai_finops.monitor` are Control-certified (see `docs/integrations/control-supported-matrix.md`). Framework adapters, streaming mid-flight cutoff, and durable checkpoint/resume are **shipped as extras or experimental paths** — not Control-supported unless a matrix cell is raised with evidence.
 
-
-[![Local package](https://img.shields.io/badge/package-local%20v1.0.1-blue.svg)](../WORKSPACE.md)
+[![PyPI](https://img.shields.io/pypi/v/kazenai-finops.svg)](https://pypi.org/project/kazenai-finops/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![LLM calls guarded](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/kazenai-ai/kazenai-finops-sdk/main/badge/llm-guard.json)](https://github.com/kazenai-ai/kazenai-finops-sdk/blob/main/scripts/audit_llm_calls_all.py)
-[![CI](https://img.shields.io/badge/ci-pending%20repo%20setup-lightgrey.svg)](../docs/version_control_reality_plan.md)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 > **Stop your AI agents from burning your budget. Catch loops before they catch you.**
 
-**Quickstart:** [kazenai.com/onboarding](https://kazenai.com/onboarding)
+**Install:** [PyPI · kazenai-finops](https://pypi.org/project/kazenai-finops/) · **Products:** [kazenai.com](https://kazenai.com)
 
-`kazenai-finops` is the customer-facing SDK for the KazenAI reliability platform. It wraps any LLM client (OpenAI, Anthropic, LangChain, LangGraph, CrewAI, AutoGen) and adds three capabilities that don't exist elsewhere.
+`kazenai-finops` is the customer-facing Agent FinOps SDK. It wraps supported LLM clients and adds budget enforcement, loop detection, and optional event ingest for Agent FinOps / Agent Lens.
 
-Publishing status: this workspace version is not yet published on PyPI. Use the
-local install command below until the package release workflow is moved into a
-real repo and run.
+**Published on PyPI** as `kazenai-finops` (depends on `kazenai` and `kazen-event-schema`). Prefer `pip install kazenai-finops`. Editable sibling installs below are for workspace contributors only.
 
-1. **Pre-emptive cost circuit-breaker** — pauses your agent before it exceeds budget, preserving state for resume.
-2. **Real-time per-step traces** — every LLM and tool call emits a canonical `KazenEvent` to the AgentLens timeline.
-3. **Loop detection** — catches the Denial-of-Wallet pattern that no logging tool can stop.
+What the Control-certified path provides today:
+
+1. **Pre-call budget deny** — hard `BudgetExceeded` before a provider call when the configured cap would be exceeded.
+2. **Soft trajectory pause** — `KazenCircuitBreaker` after a completed call when projection trips (alias: `KazenBudgetExceeded`).
+3. **Loop detection** — blocks repeated high-risk patterns before another provider call.
+4. **Optional FinOps ingest** — canonical `KazenEvent` batches when `KAZENAI_FINOPS_URL` / API key are set (HttpSink).
 
 ```python
-# local checkout install; not yet a PyPI install
-from kazenai_finops import monitor
+# pip install kazenai-finops openai
+from kazenai_finops import monitor, BudgetExceeded
 import openai
 
 client = openai.OpenAI()
@@ -35,14 +34,24 @@ monitored = monitor(
     max_budget_usd=5.00,
     debug=True,
 )
-# Any call on `monitored` is now traced + budget-guarded.
+# Certified Control path: sync chat.completions.create (non-streaming).
 ```
 
 ---
 
 ## Installation
 
-From the workspace root:
+```bash
+python -m pip install kazenai-finops openai
+# Optional Anthropic path:
+# python -m pip install kazenai-finops anthropic
+```
+
+Requires Python 3.10–3.12. Also installs transitive `kazenai` and `kazen-event-schema`.
+
+### Workspace / contributor install (optional)
+
+From a full KazenAI workspace checkout:
 
 ```bash
 python -m venv .venv-finops-sdk
@@ -52,16 +61,14 @@ pip install --no-deps -e ./kazenai-core
 pip install -e ./kazenai-finops-sdk
 ```
 
-Optional extras are defined in `pyproject.toml` and can be installed from the
-local path, for example `pip install -e './kazenai-finops-sdk[langgraph]'`.
-
-Requires Python 3.10–3.12. No C extensions. Installs in under 30 seconds.
+Optional extras are defined in `pyproject.toml`, for example
+`pip install 'kazenai-finops[langgraph]'` (framework adapters — **not** Control-certified in FINAL_1).
 
 ---
 
 ## Quick Start
 
-### Raw OpenAI
+### Raw OpenAI (Control-certified)
 
 ```python
 from kazenai_finops import monitor, BudgetExceeded, KazenCircuitBreaker
@@ -71,7 +78,7 @@ client = openai.OpenAI()
 monitored = monitor(
     client,
     agent_id="my-agent",
-    # KAZENAI_FINOPS_API_KEY env — https://kazenai.com/onboarding
+    # KAZENAI_FINOPS_API_KEY env — https://kazenai.com
     max_budget_usd=0.50,
     debug=True,
 )
@@ -88,49 +95,23 @@ except KazenCircuitBreaker as e:  # soft post-call pause (alias: KazenBudgetExce
     print(f"Soft pause: {e}")
 ```
 
-### LangChain
+### Framework adapters (not Control-certified)
+
+These helpers exist in the package for evaluation. They are **not** FINAL_1 Control-certified. Prefer wrapping the underlying OpenAI/Anthropic client with `monitor()` for the supported path.
 
 ```python
-from kazenai_finops import monitor
+# Optional extras — see pyproject.toml [project.optional-dependencies]
 from kazenai_finops.adapters.langchain import wrap_langchain_runnable
-
-chain = your_lcel_chain
-monitored = wrap_langchain_runnable(chain, agent_id="support", api_key="kz_...")
-result = monitored.invoke({"input": "help"})
-```
-
-### LangGraph
-
-```python
 from kazenai_finops.adapters.langgraph import wrap_graph_invoke
-
-graph = your_graph
-monitored = wrap_graph_invoke(graph, agent_id="research-crew", api_key="kz_...")
-result = monitored.invoke({"topic": "ai trends"})
-```
-
-### CrewAI
-
-```python
 from kazenai_finops.adapters.crewai import wrap_crew_kickoff
-
-crew = YourCrew()
-monitored = wrap_crew_kickoff(crew, agent_id="research", api_key="kz_...")
-result = monitored.kickoff(inputs={"topic": "trends"})
-```
-
-### AutoGen
-
-```python
 from kazenai_finops.adapters.autogen import wrap_conversable_agent
-
-agent = your_autogen_agent
-monitored = wrap_conversable_agent(agent, agent_id="autogen-team", api_key="kz_...")
 ```
 
 ---
 
 ## Mid-stream budget enforcement (SSE)
+
+> **Not Control-certified** in FINAL_1. Streaming / mid-flight cutoff is an experimental path.
 
 For streaming completions (`stream=True`), enable FinOps mid-flight cutoff so spend is
 checked on every token batch — not only at call start:
@@ -167,34 +148,35 @@ the same behavior on `stream_model()` chat paths.
 
 ## Why local-first enforcement matters
 
-Most observability tools record what happened. **KazenAI blocks what's about to happen.**
+Most observability tools record what happened. **KazenAI can block what's about to happen** on the certified sync path.
 
 ```
-Traditional tools:  LLM call → response → log cost → dashboard shows $47K
-KazenAI:            Pre-flight check → BLOCKED → LLM call never made
+Traditional tools:  LLM call → response → log cost → dashboard shows overspend
+KazenAI (local):    Pre-flight check → BLOCKED → LLM call never made
 ```
 
 Local enforcement means:
-- **No network dependency** — works with `backend_url=None`
-- **<5ms overhead** — budget check completes locally
-- **Backend outage ≠ protection failure** — the agent doesn't need to reach our servers to be protected
+- **Works offline for the hard cap** — no FinOps network round-trip required to deny
+- **Low overhead** — budget check completes locally on the hot path
+- **Backend outage ≠ unprotected spend** for the local hard-cap path — optional ingest may still fail open depending on configuration
 
 ---
 
-## How it relates to `kazenai-core`
+## How it relates to `kazenai` (core)
 
-`kazenai-finops` is the *customer-facing* package. Under the hood it depends on `kazenai-core`, which provides the framework hooks, event schema, and enforcement primitives. Until publishing is complete, use local sibling-path installs; package authors / integrators may depend on `kazenai-core` directly for finer-grained control.
+`kazenai-finops` is the *customer-facing* package name on PyPI. It re-exports and depends on [`kazenai`](https://pypi.org/project/kazenai/) (this workspace’s `kazenai-core` repo), which provides `monitor()`, enforcement primitives, and shared wiring to [`kazen-event-schema`](https://pypi.org/project/kazen-event-schema/). Integrators who need lower-level APIs may depend on `kazenai` directly.
 
 ---
 
-## Roadmap
+## Roadmap (honesty)
 
-| Phase | What | When |
-|---|---|---|
-| Phase 1 | LangChain ✓ · LangGraph ✓ · CrewAI ✓ · AutoGen ✓ · OpenAI ✓ | Now |
-| Phase 2 | AgentLens P1 dashboard | Aug 2026 |
-| Phase 3 | Probabilistic Replay Engine | Feb 2027 |
-| Phase 4 | Semantic Drift Monitor (P3) · TypeScript SDK | Jun 2027 |
+| Status | What |
+|---|---|
+| **Control-certified now** | Sync OpenAI Chat Completions + Anthropic Messages via `monitor()` |
+| **In package, not Control-certified** | LangChain / LangGraph / CrewAI / AutoGen adapters; streaming mid-flight |
+| **Product / future** | Broader dashboard and investigation surfaces — see product site; not claimed as SDK certification |
+
+Do not treat optional adapters or future roadmap items as Control-supported without matrix evidence.
 
 ---
 
@@ -202,7 +184,6 @@ Local enforcement means:
 
 Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE.
 
-Issues, PRs, and feedback: https://github.com/KazenAI/kazenai-finops/issues
+Issues and feedback: https://github.com/KazenAI/kazenai-finops/issues
 
-Early access + onboarding: https://kazenai.com
-
+Products and design-partner enquiries: https://kazenai.com · founder@kazenai.com

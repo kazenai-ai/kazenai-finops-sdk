@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kazenai-finops"
-version = "1.0.1"
-description = "KazenAI FinOps SDK - LangChain/LangGraph cost control adapters"
+version = "1.0.2"
+description = "Agent FinOps SDK: budget and loop monitoring for OpenAI/Anthropic (Control-certified sync path)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
@@ -28,8 +28,8 @@ classifiers = [
 # in `pip install --upgrade` automatically while protecting against
 # breaking changes (next major bump = next coordinated release).
 dependencies = [
-    "kazenai>=1.0.1,<2.0",
-    "kazen-event-schema>=0.6.0,<0.7",
+    "kazenai>=1.0.2,<2.0",
+    "kazen-event-schema>=0.6.1,<0.7",
     "pydantic>=2.0,<3",
     "httpx>=0.25,<1",
 ]

@@ -36,7 +36,7 @@ from kazenai.schema import KazenEvent, new_id, now_ms              # noqa: F401
 # Deprecated alias: soft circuit-breaker only. Hard caps raise BudgetExceeded.
 KazenBudgetExceeded = KazenCircuitBreaker
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 __all__ = [
     "FinOpsConfig",
