@@ -19,8 +19,8 @@ jobs:
         run: |
           pip install --upgrade pip
           # schema first: kazenai wheel depends on kazen-event-schema
-          pip install ./vendor/kazen_event_schema-0.6.0-py3-none-any.whl
-          pip install ./vendor/kazenai-1.0.1-py3-none-any.whl
+          pip install ./vendor/kazen_event_schema-0.6.1-py3-none-any.whl
+          pip install ./vendor/kazenai-1.0.2-py3-none-any.whl
 
       - run: |
           pip install -e ".[dev]"
