@@ -24,8 +24,22 @@ jobs:
           pip install --upgrade pip
           pip install ./vendor/kazen_event_schema-0.6.3-py3-none-any.whl
 
+      - name: Install public kazenai 1.1.x from PyPI
+        run: |
+          # Coordinated release order: Core must be public first. Retry briefly
+          # so a just-published Core wheel can finish PyPI index propagation.
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if pip install "kazenai>=1.1.0,<2.0"; then
+              python -c "import kazenai; print('kazenai', kazenai.__version__)"
+              exit 0
+            fi
+            echo "kazenai>=1.1.0 not visible yet (attempt ${attempt}); sleeping 20s"
+            sleep 20
+          done
+          echo "Timed out waiting for kazenai>=1.1.0 on PyPI"
+          exit 1
+
       - run: |
-          # Coordinated release order: kazenai 1.1.x must be public first.
           pip install -e ".[dev]"
           ruff check kazenai_finops/__init__.py tests/test_package_smoke.py
           mypy kazenai_finops/__init__.py --ignore-missing-imports
