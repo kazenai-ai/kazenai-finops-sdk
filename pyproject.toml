@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kazenai-finops"
-version = "1.0.3"
+version = "1.0.4"
 description = "Agent FinOps SDK: budget and loop monitoring for OpenAI/Anthropic (Control-certified sync path)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,7 +29,7 @@ classifiers = [
 # breaking changes (next major bump = next coordinated release).
 dependencies = [
     "kazenai>=1.0.5,<2.0",
-    "kazen-event-schema>=0.6.1,<0.7",
+    "kazen-event-schema>=0.6.3,<0.7",
     "pydantic>=2.0,<3",
     "httpx>=0.25,<1",
 ]
@@ -63,10 +63,10 @@ dev = [
 
 [project.urls]
 Homepage = "https://kazenai.com"
-Repository = "https://github.com/KazenAI/kazenai-finops"
-Documentation = "https://docs.kazenai.com"
-Changelog = "https://github.com/KazenAI/kazenai-finops/releases"
-"Bug Tracker" = "https://github.com/KazenAI/kazenai-finops/issues"
+Documentation = "https://docs.kazenai.com/"
+Repository = "https://github.com/kazenai-ai/kazenai-finops-sdk"
+Changelog = "https://github.com/kazenai-ai/kazenai-finops-sdk/releases"
+"Bug Tracker" = "https://github.com/kazenai-ai/kazenai-finops-sdk/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

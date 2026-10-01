@@ -6,7 +6,9 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-**Install:** [PyPI · kazenai-finops](https://pypi.org/project/kazenai-finops/) · **Products:** [kazenai.com](https://kazenai.com)
+**Install:** [PyPI · kazenai-finops](https://pypi.org/project/kazenai-finops/) · **Docs:** [docs.kazenai.com](https://docs.kazenai.com/) · **Products:** [kazenai.com](https://kazenai.com)
+
+**Source:** [github.com/kazenai-ai/kazenai-finops-sdk](https://github.com/kazenai-ai/kazenai-finops-sdk)
 
 ---
 
@@ -77,7 +79,7 @@ Call sites stay the same — `monitor()` wraps the client.
 |------|--------|
 | Sync OpenAI `chat.completions.create` (non-streaming) | Supported via `monitor()` |
 | Sync Anthropic `messages.create` (non-streaming) | Supported via `monitor()` |
-| Streaming mid-flight cutoff | Available as an experimental option (`stream_enforcement=True`) |
+| Streaming OpenAI / Anthropic | Experimental / not Control-certified in this release — see docs supported-surface matrix |
 | LangChain / LangGraph / CrewAI / AutoGen adapters | Optional extras for evaluation — prefer wrapping the underlying client with `monitor()` |
 
 ### Optional framework extras
