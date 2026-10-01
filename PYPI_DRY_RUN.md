@@ -1,55 +1,77 @@
-# PyPI release dry-run — 2026-06-10
+# PyPI 1.1.0 release evidence checklist
 
-Packages prepared for **1.0.1** (core/finops) and **0.6.0** (schema).  
-Real upload pending your approval after reviewing this file.
+This file is a checklist for the coordinated 1.1.0 release. It does not claim
+that an artifact has been uploaded or verified. Record evidence only after the
+corresponding command has completed successfully.
 
-## twine check (all PASSED)
+## Candidate versions
 
-```
-kazen-event-schema/dist/kazen_event_schema-0.6.0-py3-none-any.whl: PASSED
-kazen-event-schema/dist/kazen_event_schema-0.6.0.tar.gz: PASSED
-kazenai-core/dist/kazenai-1.0.1-py3-none-any.whl: PASSED
-kazenai-core/dist/kazenai-1.0.1.tar.gz: PASSED
-kazenai-finops-sdk/dist/kazenai_finops-1.0.1-py3-none-any.whl: PASSED
-kazenai-finops-sdk/dist/kazenai_finops-1.0.1.tar.gz: PASSED
-```
+| Distribution | Required version | Release dependency |
+|---|---:|---|
+| `kazen-event-schema` | `>=0.6.3,<0.7` | Must resolve from public PyPI or the reviewed vendored CI artifact |
+| `kazenai` | `1.1.0` | Must be published and clean-installable before FinOps CI/release |
+| `kazenai-finops` | `1.1.0` | Publish only after the public Core prerequisite passes |
 
-## Upload commands (run in order after approval)
+## Core prerequisite evidence
 
-```bash
-# 1. schema
-cd kazen-event-schema
-twine upload dist/kazen_event_schema-0.6.0*
+- [ ] Core release commit SHA recorded: `<SHA>`
+- [ ] Core CI URL recorded; Python 3.10, 3.11 and 3.12 all passed: `<URL>`
+- [ ] `kazenai==1.1.0` built from a clean checkout
+- [ ] `python -m twine check` passed for both Core artifacts
+- [ ] Core wheel/sdist SHA-256 hashes recorded: `<HASHES>`
+- [ ] Public `pip install --no-cache-dir kazenai==1.1.0` passed in a clean environment
+- [ ] Installed Core smoke test passed without a sibling checkout or `PYTHONPATH`
 
-# 2. core
-cd ../kazenai-core
-twine upload dist/kazenai-1.0.1*
+## FinOps source and CI evidence
 
-# 3. finops-sdk (customer-facing)
-cd ../kazenai-finops-sdk
-twine upload dist/kazenai_finops-1.0.1*
-```
+- [ ] `pyproject.toml` version is `1.1.0`
+- [ ] `kazenai_finops.__version__` fallback is `1.1.0`
+- [ ] Dependency is `kazenai>=1.1.0,<2.0`
+- [ ] Release commit SHA recorded: `<SHA>`
+- [ ] Working tree was clean at the recorded SHA
+- [ ] CI URL recorded; Python 3.10, 3.11 and 3.12 all passed: `<URL>`
+- [ ] CI resolved Core through the public dependency rather than a sibling checkout
 
-## Tags
+## Clean build evidence
 
-```bash
-git tag -a schema/v0.6.0 -m "kazen-event-schema v0.6.0"   # in kazen-event-schema repo
-git tag -a core/v1.0.1 -m "kazenai v1.0.1"               # in kazenai-core repo
-git tag -a sdk/v1.0.1 -m "kazenai-finops v1.0.1"         # in kazenai-finops-sdk repo
-git push --tags
-```
-
-## Test PyPI (optional smoke)
+From a fresh clone of the recorded FinOps commit:
 
 ```bash
-twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ kazenai-finops==1.0.1
-python -c "from kazenai_finops import monitor, KazenBudgetExceeded, BudgetExceeded; print('OK')"
+python3 -m venv .venv-release
+source .venv-release/bin/activate
+python -m pip install --upgrade pip build twine
+python -m build
+python -m twine check dist/*
 ```
 
-## What changed in 1.0.1
+- [ ] Wheel check passed: `dist/kazenai_finops-1.1.0-py3-none-any.whl`
+- [ ] Source distribution check passed: `dist/kazenai_finops-1.1.0.tar.gz`
+- [ ] Wheel/sdist SHA-256 hashes recorded: `<HASHES>`
+- [ ] Wheel installed in a second clean environment against public `kazenai==1.1.0`
+- [ ] Package metadata reported Core and FinOps versions `1.1.0 1.1.0`
 
-- `monitor()` auto-detects Anthropic clients (`patch_anthropic`)
-- `timeline_path` / `KAZENAI_TIMELINE_PATH` exports FinOps JSONL timeline
-- `BudgetExceeded` re-exported from `kazenai_finops`
-- Dependency pins: `kazen-event-schema>=0.6.0,<0.7`
+## Installed-wheel behavior evidence
+
+- [ ] Package import and public re-exports passed
+- [ ] Sync OpenAI non-streaming smoke passed
+- [ ] Sync OpenAI `create(stream=True)` smoke passed
+- [ ] Sync OpenAI `chat.completions.stream(...)` manager smoke passed
+- [ ] Sync Anthropic non-streaming smoke passed
+- [ ] Sync Anthropic `messages.stream(...)` manager smoke passed
+- [ ] Pre-dispatch budget denial made no provider call
+- [ ] Successful stream produced exactly one reservation/finalization lifecycle
+- [ ] Cancelled/error/missing-usage stream remained pending/outcome-unknown, not exact zero
+- [ ] No test relied on editable installs, repository imports or local package indexes
+
+## Publication and public verification
+
+- [ ] PyPI Trusted Publishing workflow/run recorded, or manual upload approval recorded: `<URL/NOTE>`
+- [ ] `kazenai-finops==1.1.0` is visible on public PyPI
+- [ ] Fresh `--no-cache-dir` install of both exact versions passed
+- [ ] Final public-PyPI smoke test passed
+- [ ] Published commit tag and GitHub Release created
+- [ ] Demo pins updated only after public verification
+- [ ] Matching docs revision deployed
+
+The operational commands and release ordering are maintained in
+[RELEASING.md](RELEASING.md).

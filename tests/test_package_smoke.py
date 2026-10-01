@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-_EXPECTED_RELEASE = "1.0.4"
+_EXPECTED_RELEASE = "1.1.0"
 _PYPROJECT = Path(__file__).resolve().parents[1] / "pyproject.toml"
 
 
@@ -35,6 +35,9 @@ def test_top_level_imports_without_extras():
     from kazenai.enforcement import BudgetExceeded as CoreBudgetExceeded
 
     assert kf.BudgetExceeded is CoreBudgetExceeded
+    from kazenai import UnknownModelError as CoreUnknownModelError
+
+    assert kf.UnknownModelError is CoreUnknownModelError
     assert callable(kf.monitor)
     assert kf.KazenBudgetExceeded is kf.KazenCircuitBreaker
     # KazenEvent is the canonical schema, not a local duplicate.
@@ -52,8 +55,9 @@ def test_version_authority_matches_pyproject():
 
 
 def test_installed_distribution_version_when_available():
-    import kazenai_finops as kf
     from importlib.metadata import PackageNotFoundError, version
+
+    import kazenai_finops as kf
 
     try:
         dist_version = version("kazenai-finops")
@@ -76,7 +80,7 @@ def test_project_urls_point_at_canonical_public_surfaces():
 
 
 def test_adapters_subpackage_importable():
-    import kazenai_finops.adapters as adapters
+    from kazenai_finops import adapters
 
     # The sub-package itself imports cleanly even when no extras installed.
     assert hasattr(adapters, "__all__")

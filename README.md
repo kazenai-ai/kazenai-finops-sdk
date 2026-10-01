@@ -77,9 +77,9 @@ Call sites stay the same — `monitor()` wraps the client.
 
 | Path | Status |
 |------|--------|
-| Sync OpenAI `chat.completions.create` (non-streaming) | Supported via `monitor()` |
-| Sync Anthropic `messages.create` (non-streaming) | Supported via `monitor()` |
-| Streaming OpenAI / Anthropic | Experimental / not Control-certified in this release — see docs supported-surface matrix |
+| Sync OpenAI `chat.completions.create` (non-streaming and `stream=True`) / `chat.completions.stream` | Supported via `monitor()` |
+| Sync Anthropic `messages.create` / `messages.stream` | Supported via `monitor()` |
+| OpenAI Responses / async / Realtime | Unsupported on the Control path |
 | LangChain / LangGraph / CrewAI / AutoGen adapters | Optional extras for evaluation — prefer wrapping the underlying client with `monitor()` |
 
 ### Optional framework extras
@@ -98,9 +98,13 @@ These helpers are for evaluation. For the supported control path, wrap the OpenA
 
 ---
 
-## Streaming (experimental)
+## Streaming (Control-certified)
 
-For streaming completions, mid-flight cutoff can check spend on token batches:
+Streaming uses the same pre-dispatch reservation. At provider dispatch the
+reservation becomes `provider_started`. Settlement happens when the stream ends
+with authoritative usage; early `close()`, a provider error, or missing final
+usage becomes `outcome_unknown` and leaves shared reconciliation pending rather
+than recording an exact zero or releasing an already-started call.
 
 ```python
 from kazenai_finops import monitor, StreamCutoffError
@@ -110,7 +114,7 @@ monitored = monitor(
     openai.OpenAI(),
     agent_id="streaming-agent",
     max_budget_usd=1.00,
-    stream_enforcement=True,
+    stream_cutoff_usd=0.50,  # optional local cutoff (does not use /v1/budget/stream-tick)
 )
 
 try:
@@ -119,19 +123,43 @@ try:
         messages=[{"role": "user", "content": "Long answer please"}],
         stream=True,
     )
-    for chunk in stream:
-        ...
+    with stream:
+        for chunk in stream:
+            ...
 except StreamCutoffError as e:
     print(f"Stream cut at ${e.blocked_usd:.6f}")
 ```
 
+The official lazy OpenAI helper is supported too. Dispatch occurs when its
+context manager is entered, and the nested SDK call is accounted for exactly
+once:
+
+```python
+with monitored.chat.completions.stream(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Long answer please"}],
+) as stream:
+    for event in stream:
+        ...
+```
+
+`stream_enforcement=True` is deprecated; prefer `stream_cutoff_usd`. The cutoff
+uses output observable at the client. It cannot see hidden reasoning or guarantee
+that the provider stopped generating or billing immediately after the close.
+
 ---
 
-## Why local enforcement matters
+## Local and shared enforcement
 
-- **Hard cap works offline** — no FinOps round-trip required to deny
+- **Local hard cap works offline** — no FinOps round-trip is required for the
+  in-process client limit
 - **Low overhead** — checks stay on the hot path
-- **Backend outage ≠ unprotected spend** on the local hard-cap path
+- **Shared policies can fail closed** — production/staging modes deny when a
+  required shared reservation cannot be obtained
+
+The local cap is not an account-wide provider billing limit. Multiple workers
+or services need the shared FinOps authority for a cross-process budget. An
+explicit development fail-open path retains only local safeguards.
 
 ---
 
@@ -144,6 +172,9 @@ except StreamCutoffError as e:
 | [`kazen-event-schema`](https://pypi.org/project/kazen-event-schema/) | Shared event contract |
 
 `from kazenai_finops import monitor` re-exports the core engine so existing integrations keep working.
+
+Maintainers: follow [RELEASING.md](RELEASING.md). Core 1.1.0 must be available
+on public PyPI before this package's 1.1.0 CI, clean build and publication.
 
 ---
 

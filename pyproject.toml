@@ -4,17 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kazenai-finops"
-version = "1.0.4"
-description = "Agent FinOps SDK: budget and loop monitoring for OpenAI/Anthropic (Control-certified sync path)"
+version = "1.1.0"
+description = "Agent FinOps SDK: budget and loop monitoring for OpenAI/Anthropic (Control-certified sync + streaming)"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [{ name = "Dhavan Shah", email = "founder@kazenai.com" }]
 keywords = ["llm", "agent", "finops", "observability", "openai", "anthropic", "langchain"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -28,7 +27,7 @@ classifiers = [
 # in `pip install --upgrade` automatically while protecting against
 # breaking changes (next major bump = next coordinated release).
 dependencies = [
-    "kazenai>=1.0.5,<2.0",
+    "kazenai>=1.1.0,<2.0",
     "kazen-event-schema>=0.6.3,<0.7",
     "pydantic>=2.0,<3",
     "httpx>=0.25,<1",

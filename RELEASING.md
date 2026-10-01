@@ -1,100 +1,134 @@
-# Releasing kazenai-finops
+# Releasing `kazenai-finops`
 
-This is the **customer-facing** package — every release is visible on
-PyPI. Treat it like a public API.
+`kazenai-finops` is the customer-facing SDK. Version 1.1.0 depends on
+`kazenai>=1.1.0,<2.0`, so public Core publication and verification are hard
+prerequisites—not parallel release tasks.
 
----
+## Required release order
 
-## 0. Pre-flight
+1. Commit and push the reviewed `kazenai-core` source.
+2. Require Core CI to pass on Python 3.10, 3.11 and 3.12.
+3. Build Core from a clean checkout, publish `kazenai==1.1.0`, and verify a
+   clean public-PyPI install.
+4. Commit and push the reviewed `kazenai-finops-sdk` source.
+5. Require this repository's CI to pass on Python 3.10, 3.11 and 3.12.
+6. Build from a clean checkout and publish `kazenai-finops==1.1.0`.
+7. Clean-install both public packages and rerun the supported smoke test.
+8. Update demo pins and deploy the matching documentation revision.
 
-1. `git status --short` is empty.
-2. Local kazenai-core is at a tagged version matching the dependency pin in
-   `pyproject.toml`.
-3. `kazen-event-schema` version pin is up-to-date.
-4. README.md examples have been hand-run against the new version.
+Do not publish this package while its required Core version exists only in a
+local sibling checkout.
 
----
+## 1. Confirm the public prerequisite
 
-## 1. Run tests
-
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e . -e ../kazenai-core -e ../kazen-event-schema
-pip install -r <(echo "pytest>=8.0"; echo "pytest-cov>=5.0")
-pytest tests/ -v
-```
-
-All must pass. Adapter tests run without extras installed (they
-verify the actionable-error message path).
-
----
-
-## 2. Bump the version
-
-Update **both**:
-
-```
-kazenai_finops/__init__.py  # __version__ = "X.Y.Z"
-pyproject.toml              # version = "X.Y.Z"
-```
-
-Use SemVer. The first major bump (1.0.0) commits to the public API
-shape and triggers a deprecation policy.
-
----
-
-## 3. Build + test the wheel
+In a fresh virtual environment, prove that public PyPI resolves the intended
+Core and schema versions without an editable install or private package index:
 
 ```bash
-rm -rf dist build *.egg-info
+python3 -m venv .venv-prerequisite
+source .venv-prerequisite/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --no-cache-dir "kazenai==1.1.0" "kazen-event-schema>=0.6.3,<0.7"
+python -c "import importlib.metadata as m; print(m.version('kazenai'))"
+```
+
+The command must print `1.1.0`.
+
+## 2. Prepare one releasable FinOps commit
+
+- `pyproject.toml` and `kazenai_finops/__init__.py` must both report `1.1.0`.
+- The Core dependency must remain `kazenai>=1.1.0,<2.0`.
+- README examples and the supported-path table must match the released Core.
+- The working tree must contain no secrets, customer data, virtual
+  environments, stale build artifacts or unrelated changes.
+- Commit and push the reviewed source, then record the exact commit SHA.
+
+Never publish from an uncommitted working tree and never reuse a version that
+already exists on PyPI.
+
+## 3. Require the full CI matrix
+
+Wait for GitHub Actions to pass on Python 3.10, 3.11 and 3.12. CI intentionally
+installs Core through the public dependency declaration; it must not depend on
+`../kazenai-core` or `PYTHONPATH`.
+
+Do not continue if a required job is skipped, cancelled or failing.
+
+## 4. Build from a clean checkout
+
+Clone and check out the exact reviewed FinOps commit:
+
+```bash
+git clone https://github.com/kazenai-ai/kazenai-finops-sdk.git kazenai-finops-release
+cd kazenai-finops-release
+git checkout <RELEASE_COMMIT_SHA>
+python3 -m venv .venv-release
+source .venv-release/bin/activate
+python -m pip install --upgrade pip build twine
 python -m build
-twine check dist/*
+python -m twine check dist/*
 ```
 
----
+Confirm `dist/` was empty before the build and contains only the wheel and source
+distribution produced from this commit.
 
-## 4. Publish to test PyPI first
+## 5. Test the wheel against public Core
+
+Install the built FinOps wheel into another empty environment. Do not add either
+repository to `PYTHONPATH`:
 
 ```bash
-twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ --no-deps kazenai-finops
-# Smoke-test in a fresh venv:
-python -c "from kazenai_finops import monitor, KazenBudgetExceeded; print('OK')"
+python3 -m venv .venv-wheel
+source .venv-wheel/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --no-cache-dir dist/kazenai_finops-1.1.0-py3-none-any.whl openai anthropic
+python -c "import importlib.metadata as m; print(m.version('kazenai'), m.version('kazenai-finops'))"
+python -c "from kazenai_finops import monitor, BudgetExceeded, StreamCutoffError; print('imports OK')"
 ```
 
----
+The versions must be `1.1.0 1.1.0`. Run the packaged smoke test and the
+supported synchronous OpenAI/Anthropic manager tests using mocked transports or
+a non-production tenant.
 
-## 5. Publish to real PyPI
+## 6. Publish `kazenai-finops==1.1.0`
+
+Prefer PyPI Trusted Publishing from a protected GitHub release workflow. If a
+manual upload is unavoidable, use a narrowly scoped PyPI token from the clean
+release environment:
 
 ```bash
-twine upload dist/*
+python -m twine upload dist/*
 ```
 
----
+Publishing is irreversible. Check the project name, version, commit SHA and
+artifact hashes immediately before approval.
 
-## 6. Tag + push
+## 7. Verify both packages from public PyPI
+
+After PyPI serves FinOps 1.1.0, create one more fresh environment:
 
 ```bash
-git tag -a kazenai-finops-vX.Y.Z -m "kazenai-finops vX.Y.Z"
-git push --tags
+python3 -m venv .venv-public
+source .venv-public/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --no-cache-dir "kazenai==1.1.0" "kazenai-finops==1.1.0" openai anthropic
+python -c "import importlib.metadata as m; print(m.version('kazenai'), m.version('kazenai-finops'))"
 ```
 
----
+Rerun the clean-install smoke test for non-streaming calls, `stream=True`, the
+official OpenAI and Anthropic stream managers, one pre-dispatch deny, and one
+cancelled/error stream. Verify exactly one reservation/finalization lifecycle
+per call and pending reconciliation rather than an exact-zero settlement when
+authoritative usage is absent.
 
-## 7. Post-release
+## 8. Tag and update downstream surfaces
 
-* Update the public README at https://kazenai.com.
-* Update the onboarding wizard snippet (Step 3) to reference the new
-  version if any API changed.
-* Post a LinkedIn announcement (see v3 plan §7 schedule).
-* Open a GitHub release with the changelog from `git log v(N-1)..vN`.
+- Tag the exact published commit as `v1.1.0`.
+- Create a GitHub Release linked to the tested commit and record artifact hashes
+  plus the CI run used as evidence.
+- Update demo dependency pins only after both public packages pass the final
+  clean-install smoke test.
+- Deploy the documentation revision that describes those exact published
+  versions.
 
----
-
-## Anti-patterns
-
-* Publishing without testing in a fresh venv first.
-* Bumping the version in only one of the two files.
-* Releasing without updating the README install command.
-* Force-publishing a yanked version under the same number (PyPI rejects this).
-* Breaking the `monitor()` signature in a minor bump.
+See [PYPI_DRY_RUN.md](PYPI_DRY_RUN.md) for the release evidence checklist.
