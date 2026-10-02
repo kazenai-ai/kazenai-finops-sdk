@@ -33,12 +33,15 @@ KazenAI:            Pre-flight check → BLOCKED → LLM call never made
 ## Install
 
 ```bash
-python -m pip install kazenai-finops openai
+python -m pip install kazenai-finops "openai>=1.40,<2"
 # Optional Anthropic path:
-# python -m pip install kazenai-finops anthropic
+# python -m pip install kazenai-finops "anthropic>=0.39,<1"
 ```
 
 Requires Python 3.10–3.12.
+
+The Control 1.1.0 certification covers those provider-SDK ranges. Later major
+versions are unverified until they are added to the supported matrix.
 
 ---
 
