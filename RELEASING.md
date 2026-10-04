@@ -1,18 +1,18 @@
 # Releasing `kazenai-finops`
 
-`kazenai-finops` is the customer-facing SDK. Version 1.1.0 depends on
-`kazenai>=1.1.0,<2.0`, so public Core publication and verification are hard
+`kazenai-finops` is the customer-facing SDK. Version 1.1.1 depends on
+`kazenai>=1.1.1,<2.0`, so public Core publication and verification are hard
 prerequisites—not parallel release tasks.
 
 ## Required release order
 
 1. Commit and push the reviewed `kazenai-core` source.
 2. Require Core CI to pass on Python 3.10, 3.11 and 3.12.
-3. Build Core from a clean checkout, publish `kazenai==1.1.0`, and verify a
+3. Build Core from a clean checkout, publish `kazenai==1.1.1`, and verify a
    clean public-PyPI install.
 4. Commit and push the reviewed `kazenai-finops-sdk` source.
 5. Require this repository's CI to pass on Python 3.10, 3.11 and 3.12.
-6. Build from a clean checkout and publish `kazenai-finops==1.1.0`.
+6. Build from a clean checkout and publish `kazenai-finops==1.1.1`.
 7. Clean-install both public packages and rerun the supported smoke test.
 8. Update demo pins and deploy the matching documentation revision.
 
@@ -28,16 +28,16 @@ Core and schema versions without an editable install or private package index:
 python3 -m venv .venv-prerequisite
 source .venv-prerequisite/bin/activate
 python -m pip install --upgrade pip
-python -m pip install --no-cache-dir "kazenai==1.1.0" "kazen-event-schema>=0.6.3,<0.7"
+python -m pip install --no-cache-dir "kazenai==1.1.1" "kazen-event-schema>=0.6.3,<0.7"
 python -c "import importlib.metadata as m; print(m.version('kazenai'))"
 ```
 
-The command must print `1.1.0`.
+The command must print `1.1.1`.
 
 ## 2. Prepare one releasable FinOps commit
 
-- `pyproject.toml` and `kazenai_finops/__init__.py` must both report `1.1.0`.
-- The Core dependency must remain `kazenai>=1.1.0,<2.0`.
+- `pyproject.toml` and `kazenai_finops/__init__.py` must both report `1.1.1`.
+- The Core dependency must remain `kazenai>=1.1.1,<2.0`.
 - README examples and the supported-path table must match the released Core.
 - The working tree must contain no secrets, customer data, virtual
   environments, stale build artifacts or unrelated changes.
@@ -81,16 +81,16 @@ repository to `PYTHONPATH`:
 python3 -m venv .venv-wheel
 source .venv-wheel/bin/activate
 python -m pip install --upgrade pip
-python -m pip install --no-cache-dir dist/kazenai_finops-1.1.0-py3-none-any.whl openai anthropic
+python -m pip install --no-cache-dir dist/kazenai_finops-1.1.1-py3-none-any.whl[openai,anthropic]
 python -c "import importlib.metadata as m; print(m.version('kazenai'), m.version('kazenai-finops'))"
 python -c "from kazenai_finops import monitor, BudgetExceeded, StreamCutoffError; print('imports OK')"
 ```
 
-The versions must be `1.1.0 1.1.0`. Run the packaged smoke test and the
+The versions must be `1.1.1 1.1.1`. Run the packaged smoke test and the
 supported synchronous OpenAI/Anthropic manager tests using mocked transports or
 a non-production tenant.
 
-## 6. Publish `kazenai-finops==1.1.0`
+## 6. Publish `kazenai-finops==1.1.1`
 
 Prefer PyPI Trusted Publishing from a protected GitHub release workflow. If a
 manual upload is unavoidable, use a narrowly scoped PyPI token from the clean
@@ -105,13 +105,13 @@ artifact hashes immediately before approval.
 
 ## 7. Verify both packages from public PyPI
 
-After PyPI serves FinOps 1.1.0, create one more fresh environment:
+After PyPI serves FinOps 1.1.1, create one more fresh environment:
 
 ```bash
 python3 -m venv .venv-public
 source .venv-public/bin/activate
 python -m pip install --upgrade pip
-python -m pip install --no-cache-dir "kazenai==1.1.0" "kazenai-finops==1.1.0" openai anthropic
+python -m pip install --no-cache-dir "kazenai-finops[openai,anthropic]==1.1.1"
 python -c "import importlib.metadata as m; print(m.version('kazenai'), m.version('kazenai-finops'))"
 ```
 
@@ -123,7 +123,7 @@ authoritative usage is absent.
 
 ## 8. Tag and update downstream surfaces
 
-- Tag the exact published commit as `v1.1.0`.
+- Tag the exact published commit as `v1.1.1`.
 - Create a GitHub Release linked to the tested commit and record artifact hashes
   plus the CI run used as evidence.
 - Update demo dependency pins only after both public packages pass the final

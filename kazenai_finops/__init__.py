@@ -51,7 +51,7 @@ try:
 
     __version__ = _pkg_version("kazenai-finops")
 except PackageNotFoundError:  # pragma: no cover - source-tree only
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
 __all__ = [
     "BudgetExceeded",

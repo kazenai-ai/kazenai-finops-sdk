@@ -33,15 +33,20 @@ KazenAI:            Pre-flight check → BLOCKED → LLM call never made
 ## Install
 
 ```bash
-python -m pip install kazenai-finops "openai>=1.40,<2"
+python -m pip install "kazenai-finops[openai]==1.1.1"
 # Optional Anthropic path:
-# python -m pip install kazenai-finops "anthropic>=0.39,<1"
+# python -m pip install "kazenai-finops[anthropic]==1.1.1"
+# Both providers:
+# python -m pip install "kazenai-finops[providers]==1.1.1"
 ```
 
 Requires Python 3.10–3.12.
 
-The Control 1.1.0 certification covers those provider-SDK ranges. Later major
-versions are unverified until they are added to the supported matrix.
+Provider extras pin the certified SDK ranges so a first-run install cannot
+silently resolve OpenAI 3.x or Anthropic 1.x. The Control 1.1.x certification
+covers those ranges. Later major versions are unverified until they are added
+to the supported matrix. Release `1.1.1` is a compatibility/distribution patch,
+not a new runtime capability line.
 
 ---
 
@@ -176,8 +181,8 @@ explicit development fail-open path retains only local safeguards.
 
 `from kazenai_finops import monitor` re-exports the core engine so existing integrations keep working.
 
-Maintainers: follow [RELEASING.md](RELEASING.md). Core 1.1.0 must be available
-on public PyPI before this package's 1.1.0 CI, clean build and publication.
+Maintainers: follow [RELEASING.md](RELEASING.md). Core 1.1.1 must be available
+on public PyPI before this package's 1.1.1 CI, clean build and publication.
 
 ---
 
