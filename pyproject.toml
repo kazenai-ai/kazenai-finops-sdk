@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kazenai-finops"
-version = "1.1.1"
-description = "Agent FinOps SDK: budget and loop monitoring for OpenAI/Anthropic (Control-certified sync + streaming)"
+version = "1.1.3"
+description = "KazenAI customer SDK: stop AI agent overspend before the call — budgets, loop detection and spend attribution for OpenAI and Anthropic"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -27,28 +27,37 @@ classifiers = [
 # in `pip install --upgrade` automatically while protecting against
 # breaking changes (next major bump = next coordinated release).
 dependencies = [
-    "kazenai>=1.1.1,<2.0",
-    "kazen-event-schema>=0.6.3,<0.7",
+    "kazenai>=1.1.3,<2.0",
+    "kazen-event-schema>=0.6.4,<0.7",
     "pydantic>=2.0,<3",
     "httpx>=0.25,<1",
 ]
 
 [project.optional-dependencies]
-openai = ["openai>=1.40,<2"]
+openai = ["openai>=1.40,<3"]
 anthropic = ["anthropic>=0.39,<1"]
-providers = ["openai>=1.40,<2", "anthropic>=0.39,<1"]
-langchain = ["langchain-core>=0.2,<1"]
-langgraph = ["langgraph>=0.2,<1"]
-crewai = ["crewai>=0.55,<1"]
-# AutoGen ships as a `pyautogen` package; pin to the 0.4 line that
-# stabilised the agent API.
-autogen = ["pyautogen>=0.4,<1"]
-# Convenience: install with all adapters for evaluation.
+providers = ["openai>=1.40,<3", "anthropic>=0.39,<1"]
+langchain = [
+    "langchain==1.4.4",
+    "langchain-core==1.6.9",
+    "langchain-openai==1.7.0",
+    "langchain-anthropic==1.7.5",
+]
+langgraph = [
+    "langgraph==1.2.14",
+    "langgraph-checkpoint-sqlite==3.1.1",
+    "langchain-core==1.6.9",
+]
+crewai = ["crewai==1.15.26"]
+# Convenience: every supported framework adapter.
 all = [
-    "langchain-core>=0.2,<1",
-    "langgraph>=0.2,<1",
-    "crewai>=0.55,<1",
-    "pyautogen>=0.4,<1",
+    "langchain==1.4.4",
+    "langchain-core==1.6.9",
+    "langchain-openai==1.7.0",
+    "langchain-anthropic==1.7.5",
+    "langgraph==1.2.14",
+    "langgraph-checkpoint-sqlite==3.1.1",
+    "crewai==1.15.26",
 ]
 dev = [
     "pytest>=8.0",
@@ -61,7 +70,7 @@ dev = [
     "flask>=3.0",
     "django>=5.0",
     "httpx>=0.28",
-    "openai>=1.40,<2",
+    "openai>=1.40,<3",
     "anthropic>=0.39,<1",
 ]
 

@@ -1,12 +1,12 @@
 # kazenai-finops 1.1.1
 
 Compatibility/distribution patch on the Control 1.1.x line. **No runtime capability
-matrix widening.**
+supported-integration change.**
 
 ## What changed and why
 
 - Depends on `kazenai>=1.1.1,<2.0`.
-- Adds matching `openai`, `anthropic`, and `providers` extras with certified bounds.
+- Adds matching `openai`, `anthropic`, and `providers` extras with supported bounds.
 - Synchronizes customer-facing install guidance to bounded extras.
 
 ## Install
@@ -27,11 +27,11 @@ Ranges: `openai>=1.40,<2`, `anthropic>=0.39,<1`.
 
 ## Explicitly unsupported
 
-Async clients, Responses, Realtime, Bedrock/Vertex, and uncertified provider majors.
+Async clients, Responses, Realtime, Bedrock/Vertex, and unsupported provider majors.
 
 ## Behavior change
 
-None intended versus 1.1.0 certified surfaces.
+None intended versus 1.1.0.
 
 ## Security / privacy impact
 
@@ -49,13 +49,9 @@ python -m pip install -U "kazenai-finops[openai]==1.1.1"
 
 - Docs: https://docs.kazenai.com/
 - Issues: https://github.com/kazenai-ai/kazenai-finops-sdk/issues
-- Source tag: `v1.1.1` (fill commit SHA at publication)
+- Source tag: `v1.1.1`
 
 ## Known limitation
 
 Streaming cancellation / missing authoritative usage remains pending/unknown,
 not exact zero.
-
-## Artifact digests
-
-Record wheel/sdist SHA-256 and PyPI provenance links after Trusted Publishing.

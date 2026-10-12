@@ -169,7 +169,7 @@ class FinOpsSpendClient:
         run_id: str = "",
         feature: str = "",
     ) -> Dict[str, Any]:
-        """FINAL_1 P2-6 — versioned PG admission (reservation.lifecycle.v1)."""
+        """Versioned PG admission (reservation.lifecycle.v1)."""
         body: Dict[str, Any] = {
             "lifecycle_version": "reservation.lifecycle.v1",
             "call_id": call_id,
@@ -195,7 +195,7 @@ class FinOpsSpendClient:
         idempotency_key: str = "",
         actual_usd_micros: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """FINAL_1 P2-6 — versioned PG settlement (reservation.lifecycle.v1)."""
+        """Versioned PG settlement (reservation.lifecycle.v1)."""
         body: Dict[str, Any] = {
             "lifecycle_version": "reservation.lifecycle.v1",
             "reservation_id": reservation_id,

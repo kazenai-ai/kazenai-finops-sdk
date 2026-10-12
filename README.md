@@ -4,7 +4,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/kazenai-finops.svg)](https://pypi.org/project/kazenai-finops/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/kazenai-ai/kazenai-finops-sdk/blob/main/LICENSE)
 
 **Install:** [PyPI · kazenai-finops](https://pypi.org/project/kazenai-finops/) · **Docs:** [docs.kazenai.com](https://docs.kazenai.com/) · **Products:** [kazenai.com](https://kazenai.com)
 
@@ -33,20 +33,18 @@ KazenAI:            Pre-flight check → BLOCKED → LLM call never made
 ## Install
 
 ```bash
-python -m pip install "kazenai-finops[openai]==1.1.1"
+python -m pip install "kazenai-finops[openai]==1.1.3"
 # Optional Anthropic path:
-# python -m pip install "kazenai-finops[anthropic]==1.1.1"
+# python -m pip install "kazenai-finops[anthropic]==1.1.3"
 # Both providers:
-# python -m pip install "kazenai-finops[providers]==1.1.1"
+# python -m pip install "kazenai-finops[providers]==1.1.3"
 ```
 
 Requires Python 3.10–3.12.
 
-Provider extras pin the certified SDK ranges so a first-run install cannot
-silently resolve OpenAI 3.x or Anthropic 1.x. The Control 1.1.x certification
-covers those ranges. Later major versions are unverified until they are added
-to the supported matrix. Release `1.1.1` is a compatibility/distribution patch,
-not a new runtime capability line.
+Provider extras keep the provider SDKs within the supported ranges
+(`openai>=1.40,<3`, `anthropic>=0.39,<1`). KazenAI is tested on OpenAI 1.109.1
+and 2.48.0 and Anthropic 0.125.0. `kazenai-finops` 1.1.3 installs `kazenai` 1.1.3.
 
 ---
 
@@ -83,12 +81,19 @@ Call sites stay the same — `monitor()` wraps the client.
 
 ## Supported today
 
+Every path below is covered by the test suite; the OpenAI, Anthropic, LiteLLM,
+LangChain and LangGraph paths are also verified against the live provider APIs.
+Full list: [Supported integrations](https://github.com/kazenai-ai/kazenai-core/blob/main/docs/integrations/control-supported-matrix.md).
+
 | Path | Status |
 |------|--------|
-| Sync OpenAI `chat.completions.create` (non-streaming and `stream=True`) / `chat.completions.stream` | Supported via `monitor()` |
-| Sync Anthropic `messages.create` / `messages.stream` | Supported via `monitor()` |
-| OpenAI Responses / async / Realtime | Unsupported on the Control path |
-| LangChain / LangGraph / CrewAI / AutoGen adapters | Optional extras for evaluation — prefer wrapping the underlying client with `monitor()` |
+| OpenAI Chat Completions (`create`, `stream`, `parse`), sync and async, streaming and non-streaming | Supported, verified against the live API |
+| Anthropic Messages (`create`, `stream`), sync and async, streaming and non-streaming | Supported, verified against the live API |
+| LangChain `ChatOpenAI` / `ChatAnthropic` | Supported when bound with `bind_monitored_chat_openai` / `bind_monitored_chat_anthropic` |
+| LangGraph | Supported when the graph declares every provider client its nodes use; raw clients created inside nodes are not intercepted |
+| LiteLLM proxy | Supported with application-owned or gateway-owned accounting (gateway-owned streaming settlement not yet verified) |
+| CrewAI | Preview: `bind_crew_llm_client` works for sequential crews; not yet a supported path |
+| OpenAI Responses / Realtime, Anthropic `client.beta.messages`, AutoGen | Not supported |
 
 ### Optional framework extras
 
@@ -102,17 +107,39 @@ from kazenai_finops.adapters.langgraph import wrap_graph_invoke
 from kazenai_finops.adapters.crewai import wrap_crew_kickoff
 ```
 
-These helpers are for evaluation. For the supported control path, wrap the OpenAI/Anthropic client with `monitor()`.
+For Control, wrap the actual OpenAI/Anthropic client with `monitor()` and satisfy
+the adapter's binding requirement. A separate, unused monitored client does not
+protect provider calls made elsewhere in a framework workflow.
+
+```python
+from kazenai_finops import SharedBudget
+from kazenai_finops.adapters.langchain import bind_monitored_chat_anthropic, bind_monitored_chat_openai
+
+budget = SharedBudget(max_usd=1.00)  # one cap for every step of the workflow
+bind_monitored_chat_openai(planner_chat, OpenAI(), async_client=AsyncOpenAI(), budget=budget)
+bind_monitored_chat_anthropic(writer_chat, Anthropic(), async_client=AsyncAnthropic(), budget=budget)
+```
+
+A LangGraph graph whose nodes call several providers declares all of them with
+`declare_langgraph_control_boundary(graph, *clients)` and is wrapped with
+`wrap_graph(graph, capability="control", guarded_clients=[...])`.
+
+Pending settlement recovery also requires a persistent
+`KAZENAI_SDK_SETTLE_QUEUE_DIR` and a supervised caller of
+`flush_pending_settlements`. Use one process per queue directory until the
+multiprocess conflict path is made transactional.
 
 ---
 
-## Streaming (Control-certified)
+## Streaming
 
 Streaming uses the same pre-dispatch reservation. At provider dispatch the
 reservation becomes `provider_started`. Settlement happens when the stream ends
-with authoritative usage; early `close()`, a provider error, or missing final
-usage becomes `outcome_unknown` and leaves shared reconciliation pending rather
-than recording an exact zero or releasing an already-started call.
+with authoritative usage; early `close()`, a provider error after dispatch, or
+missing final usage becomes `outcome_unknown` and leaves shared reconciliation
+pending rather than recording an exact zero or releasing an already-started call.
+A definitive provider refusal before any output (HTTP 4xx such as unknown model,
+invalid key or rate limit) settles at exactly $0 instead.
 
 ```python
 from kazenai_finops import monitor, StreamCutoffError
@@ -181,13 +208,12 @@ explicit development fail-open path retains only local safeguards.
 
 `from kazenai_finops import monitor` re-exports the core engine so existing integrations keep working.
 
-Maintainers: follow [RELEASING.md](RELEASING.md). Core 1.1.1 must be available
-on public PyPI before this package's 1.1.1 CI, clean build and publication.
+Maintainers release with [RELEASING.md](https://github.com/kazenai-ai/kazenai-finops-sdk/blob/main/RELEASING.md).
 
 ---
 
 ## License
 
-Apache License 2.0. See LICENSE and NOTICE.
+Apache License 2.0. See [LICENSE](https://github.com/kazenai-ai/kazenai-finops-sdk/blob/main/LICENSE) and [NOTICE](https://github.com/kazenai-ai/kazenai-finops-sdk/blob/main/NOTICE).
 
 Issues: https://github.com/kazenai-ai/kazenai-finops-sdk/issues · Products: [kazenai.com](https://kazenai.com) · **founder@kazenai.com**

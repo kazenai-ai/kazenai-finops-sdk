@@ -12,8 +12,9 @@ heavy lifting (event schema, enforcement, loop detection, sinks) lives in
       hosted-backend convenience helpers, onboarding wizards) land here.
 
 Public API:
-    monitor(...)              — wrap sync OpenAI Chat Completions / Anthropic Messages
+    monitor(...)              — wrap OpenAI Chat Completions / Anthropic Messages (sync and async)
     BudgetExceeded            — hard local/shared budget deny (before provider)
+    SharedBudget              — one local cap shared by several monitor() clients
     BudgetUnavailable         — FinOps unreachable under fail-closed
     KazenCircuitBreaker       — soft trajectory pause (after a completed call)
     KazenBudgetExceeded       — deprecated alias of KazenCircuitBreaker (not hard BudgetExceeded)
@@ -33,6 +34,7 @@ from kazenai import (
     FinOpsController,
     KazenCircuitBreaker,
     KazenEvent,
+    SharedBudget,
     StreamCutoffError,
     UnknownModelError,
     monitor,
@@ -51,7 +53,7 @@ try:
 
     __version__ = _pkg_version("kazenai-finops")
 except PackageNotFoundError:  # pragma: no cover - source-tree only
-    __version__ = "1.1.1"
+    __version__ = "1.1.3"
 
 __all__ = [
     "BudgetExceeded",
@@ -61,6 +63,7 @@ __all__ = [
     "KazenBudgetExceeded",
     "KazenCircuitBreaker",
     "KazenEvent",
+    "SharedBudget",
     "StreamCutoffError",
     "UnknownModelError",
     "__version__",
