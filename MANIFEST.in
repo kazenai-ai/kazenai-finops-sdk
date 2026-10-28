@@ -4,4 +4,4 @@ include LICENSE NOTICE README.md
 prune tests
 prune scripts
 prune .github
-exclude RELEASE_NOTES_*.md RELEASING.md CONTRIBUTING.md SECURITY.md
+exclude CHANGELOG.md RELEASING.md CONTRIBUTING.md SECURITY.md

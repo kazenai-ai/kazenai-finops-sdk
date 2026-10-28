@@ -15,7 +15,7 @@ python3 -m venv /tmp/kazenai-finops-prereq
 
 - Set `X.Y.Z` in `pyproject.toml` and `kazenai_finops/__init__.py`, and require
   `kazenai>=X.Y.Z,<2.0`.
-- Update the install commands in the README and add `RELEASE_NOTES_X.Y.Z.md`.
+- Update the install commands in the README and add a section at the top of `CHANGELOG.md` headed `## X.Y.Z - YYYY-MM-DD` (the release date).
 - Make sure the commit contains no secrets, customer data, local environments
   or generated files, then push it to `main`.
 
@@ -28,7 +28,10 @@ CI installs `kazenai` from PyPI and must pass on Python 3.10, 3.11 and 3.12.
 ```bash
 git tag -a vX.Y.Z -m "kazenai-finops X.Y.Z"
 git push origin vX.Y.Z
-gh release create vX.Y.Z --title "kazenai-finops X.Y.Z" --notes-file RELEASE_NOTES_X.Y.Z.md --verify-tag
+# The Release body is this version's CHANGELOG.md section plus a docs and support line.
+awk '/^## /{p=0} /^## X.Y.Z /{p=1; next} p' CHANGELOG.md > /tmp/notes-X.Y.Z.md
+printf '\nDocs: https://docs.kazenai.com/ · Support: open an issue at https://github.com/kazenai-ai/kazenai-finops-sdk/issues\n' >> /tmp/notes-X.Y.Z.md
+gh release create vX.Y.Z --title "kazenai-finops X.Y.Z" --notes-file /tmp/notes-X.Y.Z.md --verify-tag
 ```
 
 The tag runs the publish workflow (PyPI Trusted Publishing).
