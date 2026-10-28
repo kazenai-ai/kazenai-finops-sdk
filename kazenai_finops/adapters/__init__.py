@@ -1,8 +1,8 @@
 """Framework adapters for kazenai-finops.
 
-Each adapter wraps a specific agent framework (LangChain, LangGraph,
-CrewAI) so the user gets cost control + traces with a one-line wrap.
-Importing a sub-module requires the corresponding extra:
+Each adapter wraps a specific agent framework (LangChain, LangGraph, CrewAI)
+so the user gets cost control + traces with a one-line wrap. Importing a
+sub-module requires the corresponding extra:
 
     pip install kazenai-finops[langchain]
     pip install kazenai-finops[langgraph]

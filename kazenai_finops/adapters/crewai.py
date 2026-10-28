@@ -1,4 +1,4 @@
-"""CrewAI adapter — thin re-export from kazenai-core."""
+"""CrewAI adapter — thin re-export from kazenai-core (CrewAI 1.15.26)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ try:
         CrewAdapter,
         KazenCrewListener,
         bind_crew_llm_client,
+        unguarded_crew_paths,
         wrap_crew,
         wrap_crew_kickoff,
     )
@@ -20,6 +21,7 @@ __all__ = [
     "CrewAdapter",
     "KazenCrewListener",
     "bind_crew_llm_client",
+    "unguarded_crew_paths",
     "wrap_crew",
     "wrap_crew_kickoff",
 ]
