@@ -5,8 +5,29 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
+import warnings
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
+
+
+_LEGACY_BUDGET_GUIDANCE = (
+    "Hosted Agent FinOps runs the Control lifecycle and refuses the legacy budget "
+    "endpoints. Use kazenai.monitor(...), which reserves before each call and "
+    "settles after it."
+)
+
+
+class LegacyBudgetEndpointUnsupported(RuntimeError):
+    """FinOps answered 501 unsupported_mode for a legacy budget endpoint."""
+
+
+def _warn_legacy(method: str) -> None:
+    warnings.warn(
+        f"FinOpsSpendClient.{method}() is deprecated and will be removed in 2.0. "
+        + _LEGACY_BUDGET_GUIDANCE,
+        DeprecationWarning,
+        stacklevel=3,
+    )
 
 
 @dataclass(frozen=True)
@@ -75,6 +96,12 @@ class FinOpsSpendClient:
                 parsed = {"detail": raw}
             if exc.code == 402:
                 return parsed
+            detail = parsed.get("detail") if isinstance(parsed, dict) else None
+            if exc.code == 501 and isinstance(detail, dict) and detail.get("error_code") == "unsupported_mode":
+                raise LegacyBudgetEndpointUnsupported(
+                    f"{method} {path}: {detail.get('reason') or 'unsupported_mode'}. "
+                    + _LEGACY_BUDGET_GUIDANCE
+                ) from exc
             raise
 
     def get_org_spend(self, org_id: str, *, period_days: int = 30) -> OrgSpendSummary:
@@ -101,6 +128,8 @@ class FinOpsSpendClient:
         reserve: bool = True,
         increment_step: bool = True,
     ) -> BudgetCheckResult:
+        """Deprecated: legacy budget endpoint, refused by hosted Control. Use ``kazenai.monitor``."""
+        _warn_legacy("check_budget")
         body: Dict[str, Any] = {
             "org_id": org_id,
             "workspace_id": workspace_id,
@@ -144,6 +173,8 @@ class FinOpsSpendClient:
         actual_cost_usd: float,
         workspace_id: str = "default",
     ) -> Dict[str, Any]:
+        """Deprecated: legacy budget endpoint, refused by hosted Control. Use ``kazenai.monitor``."""
+        _warn_legacy("reconcile_budget")
         return self._request(
             "POST",
             "/v1/budget/reconcile",
