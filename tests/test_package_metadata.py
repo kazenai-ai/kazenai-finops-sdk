@@ -1,4 +1,4 @@
-"""Package metadata, provider extras, and re-export identity for 1.1.3."""
+"""Package metadata, provider extras, and re-export identity for 1.2.0."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from kazenai import monitor as core_monitor
 from kazenai_finops import monitor as finops_monitor
 
 _ROOT = Path(__file__).resolve().parents[1]
-_EXPECTED = "1.1.3"
+_EXPECTED = "1.2.0"
 _OPENAI_BOUND = "openai>=1.40,<3"
 _ANTHROPIC_BOUND = "anthropic>=0.39,<1"
 
@@ -37,10 +37,11 @@ def test_runtime_and_pyproject_version_match_expected() -> None:
     assert kazenai_finops.__version__ == _EXPECTED
 
 
-def test_depends_on_core_1_1_2_range() -> None:
+def test_depends_on_core_1_2_range() -> None:
     text = _pyproject_text()
-    assert '"kazenai>=1.1.3,<2.0"' in text
-    assert '"kazen-event-schema>=0.6.4,<0.7"' in text
+    # [server] carries cryptography, needed to verify the signed live price catalog.
+    assert '"kazenai[server]>=1.2.0,<2.0"' in text
+    assert '"kazen-event-schema>=0.6.6,<0.7"' in text
 
 
 def test_optional_provider_extras_use_supported_bounds() -> None:
