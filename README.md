@@ -37,19 +37,19 @@ KazenAI:            Pre-flight check → BLOCKED → LLM call never made
 ## Install
 
 ```bash
-python -m pip install "kazenai-finops[openai]==1.2.0"
+python -m pip install "kazenai-finops[openai]==1.2.1"
 # Optional Anthropic path:
-# python -m pip install "kazenai-finops[anthropic]==1.2.0"
+# python -m pip install "kazenai-finops[anthropic]==1.2.1"
 # Both providers:
-# python -m pip install "kazenai-finops[providers]==1.2.0"
+# python -m pip install "kazenai-finops[providers]==1.2.1"
 ```
 
-Requires Python 3.10–3.12.
+Requires Python 3.10–3.14.
 
 Provider extras keep the provider SDKs within the supported ranges
 (`openai>=1.40,<3`, `anthropic>=0.39,<1`). KazenAI is tested on OpenAI 1.109.1
 and 2.48.0 (Chat Completions), OpenAI 2.54.0 (Responses and the live runs) and
-Anthropic 0.125.0. `kazenai-finops` 1.2.0 installs `kazenai` 1.2.0.
+Anthropic 0.125.0. `kazenai-finops` 1.2.1 installs `kazenai` 1.2.1 or later.
 
 ---
 
@@ -88,6 +88,59 @@ export KAZENAI_FINOPS_URL=https://finops.example.com   # your Agent FinOps URL
 export KAZENAI_FINOPS_API_KEY=kz_...
 export KAZENAI_TIER_MISMATCH_MULTIPLIER=2              # required under Control
 ```
+
+```python
+monitored = monitor(
+    client,
+    agent_id="customer-support",
+    org_id="<organization ID>",      # both IDs are on the Setup page in Agent FinOps
+    workspace_id="<workspace ID>",
+    max_budget_usd=5.00,
+    require_customer_id=True,        # refuse a call that names no customer
+)
+```
+
+An Agent FinOps API key belongs to one organization and one workspace. Pass the
+same two IDs to `monitor()`; the Setup page in Agent FinOps shows them and fills
+them into its code snippet. `monitor()` does not read them from the key or from
+`KAZENAI_ORG_ID`. Without them it uses `local` and `default`, Agent FinOps
+refuses each reservation with HTTP 403, and the call raises `BudgetUnavailable`
+before it reaches the provider.
+
+Name the customer on each call. A per-customer limit in Agent FinOps (dimension
+`business_subject`) applies only to calls that carry that customer's ID as
+`business_subject_ref`:
+
+```python
+from kazenai_finops import use_attribution
+
+with use_attribution(business_subject_ref="cust_123"):
+    monitored.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": "Summarize this ticket"}],
+    )
+```
+
+Use the same ID the limit was set for. When a client only ever serves one
+customer, `monitor(..., business_subject_ref="cust_123")` names that customer on
+every call instead. If both name a customer and the IDs differ, the call raises
+`AttributionConflict` before it reaches the provider. A call without a customer
+ID is checked against the organization and workspace limits only; no
+per-customer limit applies to it. The ID is held in a context variable: calls in
+the same thread, and in asyncio tasks started inside the `with` block, carry it.
+A thread started inside the block, such as a `ThreadPoolExecutor` worker, does not.
+To carry the ID into a worker, submit the work in a copy of the current context:
+
+```python
+import contextvars
+
+with use_attribution(business_subject_ref="cust_123"):
+    pool.submit(contextvars.copy_context().run, handle_ticket, ticket)
+```
+
+With `require_customer_id=True` (1.2.1 and later), a call without a customer ID
+raises `CustomerIdRequired` before it reserves budget or reaches the provider,
+instead of being checked against the organization and workspace limits only.
 
 Setting the FinOps URL selects the Control lifecycle (the default since 1.2.0):
 each guarded call reserves against your limits in Agent FinOps before dispatch
