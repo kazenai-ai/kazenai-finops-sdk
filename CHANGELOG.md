@@ -3,6 +3,34 @@
 Notable changes to `kazenai-finops`, newest first. Each release is also published on
 [GitHub Releases](https://github.com/kazenai-ai/kazenai-finops-sdk/releases).
 
+## 1.2.1 - 2026-10-31
+
+Name the customer from `kazenai_finops`, and refuse calls that don't.
+
+```bash
+python -m pip install "kazenai-finops[openai]==1.2.1"
+```
+
+### New
+
+- `kazenai_finops` now exports `use_attribution`, `AttributionConflict` and
+  `AttributionContext`, so `from kazenai_finops import use_attribution` works.
+- Ships `kazenai` 1.2.1: `monitor(..., require_customer_id=True)` refuses a call
+  that names no customer ID with `CustomerIdRequired` (also exported here), before
+  it reserves budget or reaches the provider. Off by default.
+
+### Docs
+
+- "Hosted limits per customer" shows the `org_id` and `workspace_id` that hosted
+  Agent FinOps needs (without them each reservation gets HTTP 403), how to name
+  the customer on each call, and how to carry the ID into a worker thread.
+
+### Compatibility
+
+- Requires `kazenai[server]>=1.2.1,<2` and `kazen-event-schema>=0.6.6,<0.7`.
+- Supports Python 3.13 and 3.14, now tested in CI alongside 3.10–3.12 and listed
+  in the package metadata.
+
 ## 1.2.0 - 2026-10-28
 
 Ships `kazenai` 1.2.0: hard limits by default when Agent FinOps is configured,

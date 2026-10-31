@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-_EXPECTED_RELEASE = "1.2.0"
+_EXPECTED_RELEASE = "1.2.1"
 _PYPROJECT = Path(__file__).resolve().parents[1] / "pyproject.toml"
 
 

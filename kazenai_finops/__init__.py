@@ -20,6 +20,10 @@ Public API:
     KazenBudgetExceeded       — deprecated alias of KazenCircuitBreaker (not hard BudgetExceeded)
     KazenEvent                — canonical event schema (re-export)
     FinOpsController          — lower-level controller for power users
+    use_attribution           — name the customer (and feature/workflow) for calls in a block
+    AttributionConflict       — two different customer IDs named for one call
+    AttributionContext        — the attribution in force for the current call
+    CustomerIdRequired        — monitor(require_customer_id=True) refused a call with no customer ID
 """
 
 from __future__ import annotations
@@ -28,8 +32,11 @@ from __future__ import annotations
 # engine lives in kazenai-core. If a user upgrades only kazenai-core they
 # still get the new behaviour through this re-export.
 from kazenai import (
+    AttributionConflict,
+    AttributionContext,
     BudgetExceeded,
     BudgetUnavailable,
+    CustomerIdRequired,
     FinOpsConfig,
     FinOpsController,
     KazenCircuitBreaker,
@@ -38,6 +45,7 @@ from kazenai import (
     StreamCutoffError,
     UnknownModelError,
     monitor,
+    use_attribution,
 )
 from kazenai.schema import new_id, now_ms
 from kazenai.spine import aguarded_llm_call, guarded_embedding_call, guarded_llm_call
@@ -53,11 +61,14 @@ try:
 
     __version__ = _pkg_version("kazenai-finops")
 except PackageNotFoundError:  # pragma: no cover - source-tree only
-    __version__ = "1.2.0"
+    __version__ = "1.2.1"
 
 __all__ = [
+    "AttributionConflict",
+    "AttributionContext",
     "BudgetExceeded",
     "BudgetUnavailable",
+    "CustomerIdRequired",
     "FinOpsConfig",
     "FinOpsController",
     "KazenBudgetExceeded",
@@ -73,4 +84,5 @@ __all__ = [
     "monitor",
     "new_id",
     "now_ms",
+    "use_attribution",
 ]
