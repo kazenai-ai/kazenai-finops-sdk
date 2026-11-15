@@ -1,4 +1,4 @@
-"""Package metadata, provider extras, and re-export identity for 1.2.1."""
+"""Package metadata, provider extras, and re-export identity for 1.2.6."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from kazenai import monitor as core_monitor
 from kazenai_finops import monitor as finops_monitor
 
 _ROOT = Path(__file__).resolve().parents[1]
-_EXPECTED = "1.2.1"
+_EXPECTED = "1.2.6"
 _OPENAI_BOUND = "openai>=1.40,<3"
 _ANTHROPIC_BOUND = "anthropic>=0.39,<1"
 
@@ -40,7 +40,7 @@ def test_runtime_and_pyproject_version_match_expected() -> None:
 def test_depends_on_core_1_2_range() -> None:
     text = _pyproject_text()
     # [server] carries cryptography, needed to verify the signed live price catalog.
-    assert '"kazenai[server]>=1.2.1,<2.0"' in text
+    assert '"kazenai[server]>=1.2.6,<2.0"' in text
     assert '"kazen-event-schema>=0.6.6,<0.7"' in text
 
 
@@ -60,6 +60,20 @@ def test_attribution_api_is_reexported_from_core() -> None:
     for name in ("use_attribution", "AttributionConflict", "AttributionContext", "CustomerIdRequired"):
         assert name in kazenai_finops.__all__
         assert getattr(kazenai_finops, name) is getattr(kazenai, name)
+
+
+def test_loop_detected_is_reexported_from_core() -> None:
+    # The docs catch LoopDetected from kazenai_finops under monitor(loop_guard="block") (1.2.3).
+    assert "LoopDetected" in kazenai_finops.__all__
+    assert kazenai_finops.LoopDetected is kazenai.LoopDetected
+
+
+def test_invalid_attribution_is_reexported_from_core() -> None:
+    # 1.2.6: a customer or feature ID Agent FinOps refuses raises InvalidAttribution,
+    # a BudgetUnavailable subclass, instead of "Pre-call reservation HTTP 400".
+    assert "InvalidAttribution" in kazenai_finops.__all__
+    assert kazenai_finops.InvalidAttribution is kazenai.InvalidAttribution
+    assert issubclass(kazenai_finops.InvalidAttribution, kazenai_finops.BudgetUnavailable)
 
 
 def test_active_first_run_docs_prefer_bounded_extras() -> None:

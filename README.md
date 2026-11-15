@@ -22,7 +22,7 @@ limit before it runs. Over the limit, the call doesn't happen.
 
 1. **Pre-call budget deny** — hard `BudgetExceeded` before a provider call
 2. **Soft trajectory pause** — `KazenCircuitBreaker` when projected spend trips (alias: `KazenBudgetExceeded`)
-3. **Loop detection** — stop repeated high-risk patterns before another LLM call
+3. **Loop detection** — record requests that repeat like a loop as `finops.loop.anomaly` events; `monitor(loop_guard="block")` refuses them with `LoopDetected` before the provider call
 4. **A limit per customer in Agent FinOps** (optional) — enforced across every process, with a receipt for every allow and deny
 
 It depends on [`kazenai`](https://pypi.org/project/kazenai/) (the core engine) and [`kazen-event-schema`](https://pypi.org/project/kazen-event-schema/). Most teams should install **this** package, not core directly.
@@ -37,11 +37,11 @@ KazenAI:            Pre-flight check → BLOCKED → LLM call never made
 ## Install
 
 ```bash
-python -m pip install "kazenai-finops[openai]==1.2.1"
+python -m pip install "kazenai-finops[openai]==1.2.6"
 # Optional Anthropic path:
-# python -m pip install "kazenai-finops[anthropic]==1.2.1"
+# python -m pip install "kazenai-finops[anthropic]==1.2.6"
 # Both providers:
-# python -m pip install "kazenai-finops[providers]==1.2.1"
+# python -m pip install "kazenai-finops[providers]==1.2.6"
 ```
 
 Requires Python 3.10–3.14.
@@ -49,7 +49,7 @@ Requires Python 3.10–3.14.
 Provider extras keep the provider SDKs within the supported ranges
 (`openai>=1.40,<3`, `anthropic>=0.39,<1`). KazenAI is tested on OpenAI 1.109.1
 and 2.48.0 (Chat Completions), OpenAI 2.54.0 (Responses and the live runs) and
-Anthropic 0.125.0. `kazenai-finops` 1.2.1 installs `kazenai` 1.2.1 or later.
+Anthropic 0.125.0. `kazenai-finops` 1.2.6 installs `kazenai` 1.2.6 or later.
 
 ---
 
