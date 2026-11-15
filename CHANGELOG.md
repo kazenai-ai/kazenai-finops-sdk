@@ -3,7 +3,7 @@
 Notable changes to `kazenai-finops`, newest first. Each release is also published on
 [GitHub Releases](https://github.com/kazenai-ai/kazenai-finops-sdk/releases).
 
-## 1.2.6 - unreleased
+## 1.2.6 - 2026-11-15
 
 Ships `kazenai` 1.2.6. The loop guard records by default instead of refusing
 calls, Agent FinOps admits a call in one round trip, short text requests hold close
