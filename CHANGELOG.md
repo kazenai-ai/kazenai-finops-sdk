@@ -3,6 +3,55 @@
 Notable changes to `kazenai-finops`, newest first. Each release is also published on
 [GitHub Releases](https://github.com/kazenai-ai/kazenai-finops-sdk/releases).
 
+## 1.2.6 - unreleased
+
+Ships `kazenai` 1.2.6. The loop guard records by default instead of refusing
+calls, Agent FinOps admits a call in one round trip, short text requests hold close
+to their cost, and a customer ID Agent FinOps refuses raises `InvalidAttribution`.
+The version follows `kazenai` 1.2.6; there is no `kazenai-finops` 1.2.2 to 1.2.5
+(this release was prepared as 1.2.3 and not published).
+
+```bash
+python -m pip install "kazenai-finops[openai]==1.2.6"
+```
+
+### Changed
+
+- From `kazenai` 1.2.3. **Behaviour change:** `monitor()` no longer refuses a call
+  because it looks like a loop. A loop hit writes a `finops.loop.anomaly` event (reason
+  `repeated_request`) and the call goes ahead. Up to 1.2.2 it raised `LoopDetected`, which refused ordinary
+  traffic under every limit: the same question from two customers, a long shared
+  system prompt, an agent's tools list from its third call, a long chat, content sent
+  as a list of parts, and an app's own retry.
+- `monitor(loop_guard="block")` keeps the old refusal (and now records it);
+  `loop_guard="off"` skips the check. The default is `"record"`.
+- The loop guard keeps its history per customer (the call's `business_subject_ref`),
+  so two customers sending the same prompt through one client are never a loop.
+  Calls that name no customer share one history per client. Up to 64 customer
+  histories per client; the least recently active is dropped first.
+
+- Ships `kazenai` 1.2.4: one request to Agent FinOps before each call instead of
+  two, and the settle after the call is sent in the background (see the `kazenai`
+  changelog for `KAZENAI_SETTLE_IN_BACKGROUND` and `drain_settlements()`).
+- Ships `kazenai` 1.2.5: a plain-text request is held at close to its size instead
+  of at least 2,000 input tokens. Every hold is still an upper bound.
+- Ships `kazenai` 1.2.6: a customer or feature ID Agent FinOps refuses raises
+  `InvalidAttribution` with the reason (it said `BudgetUnavailable: Pre-call
+  reservation HTTP 400`); an over-limit `BudgetExceeded` says what the call could
+  have cost and what was left; LiteLLM gateway calls that name no run are no longer
+  filed under one run called "None".
+
+### New
+
+- `kazenai_finops` now exports `LoopDetected`, so `from kazenai_finops import
+  LoopDetected` works.
+- `kazenai_finops` now exports `InvalidAttribution`. It subclasses
+  `BudgetUnavailable`, so existing handlers still catch it.
+
+### Compatibility
+
+- Requires `kazenai[server]>=1.2.6,<2` and `kazen-event-schema>=0.6.6,<0.7`.
+
 ## 1.2.1 - 2026-10-31
 
 Name the customer from `kazenai_finops`, and refuse calls that don't.

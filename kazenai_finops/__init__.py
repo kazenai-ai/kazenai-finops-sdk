@@ -15,7 +15,8 @@ Public API:
     monitor(...)              — wrap OpenAI Chat Completions and Responses / Anthropic Messages (sync and async)
     BudgetExceeded            — hard local/shared budget deny (before provider)
     SharedBudget              — one local cap shared by several monitor() clients
-    BudgetUnavailable         — FinOps unreachable under fail-closed
+    BudgetUnavailable         — no usable answer from Agent FinOps (unreachable, timed out, or an error status) under fail-closed
+    InvalidAttribution        — Agent FinOps refused the call's customer or feature ID (a BudgetUnavailable)
     KazenCircuitBreaker       — soft trajectory pause (after a completed call)
     KazenBudgetExceeded       — deprecated alias of KazenCircuitBreaker (not hard BudgetExceeded)
     KazenEvent                — canonical event schema (re-export)
@@ -24,6 +25,7 @@ Public API:
     AttributionConflict       — two different customer IDs named for one call
     AttributionContext        — the attribution in force for the current call
     CustomerIdRequired        — monitor(require_customer_id=True) refused a call with no customer ID
+    LoopDetected              — monitor(loop_guard="block") refused a call that repeats like a loop
 """
 
 from __future__ import annotations
@@ -39,8 +41,10 @@ from kazenai import (
     CustomerIdRequired,
     FinOpsConfig,
     FinOpsController,
+    InvalidAttribution,
     KazenCircuitBreaker,
     KazenEvent,
+    LoopDetected,
     SharedBudget,
     StreamCutoffError,
     UnknownModelError,
@@ -61,7 +65,7 @@ try:
 
     __version__ = _pkg_version("kazenai-finops")
 except PackageNotFoundError:  # pragma: no cover - source-tree only
-    __version__ = "1.2.1"
+    __version__ = "1.2.6"
 
 __all__ = [
     "AttributionConflict",
@@ -71,9 +75,11 @@ __all__ = [
     "CustomerIdRequired",
     "FinOpsConfig",
     "FinOpsController",
+    "InvalidAttribution",
     "KazenBudgetExceeded",
     "KazenCircuitBreaker",
     "KazenEvent",
+    "LoopDetected",
     "SharedBudget",
     "StreamCutoffError",
     "UnknownModelError",

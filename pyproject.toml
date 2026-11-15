@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kazenai-finops"
-version = "1.2.1"
+version = "1.2.6"
 description = "A hard spending limit for every customer's AI: checks each OpenAI and Anthropic call against that customer's limit before it runs, with spend attribution"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -31,7 +31,7 @@ classifiers = [
 # ``[server]`` brings ``cryptography``: the SDK verifies the signed live price
 # catalog Agent FinOps serves. Without it the bundled snapshot is used.
 dependencies = [
-    "kazenai[server]>=1.2.1,<2.0",
+    "kazenai[server]>=1.2.6,<2.0",
     "kazen-event-schema>=0.6.6,<0.7",
     "pydantic>=2.0,<3",
     "httpx>=0.25,<1",
